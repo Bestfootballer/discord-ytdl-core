@@ -1,6 +1,6 @@
+import { FFmpeg, opus as Opus } from 'prism-media';
+import { Duplex, Readable } from 'stream';
 import ytdl, { downloadOptions } from 'ytdl-core';
-import { opus as Opus, FFmpeg } from 'prism-media';
-import { Readable, Duplex } from 'stream';
 
 // ytdl events
 const evn = [
@@ -125,7 +125,7 @@ const StreamDownloader = (url: string, options?: YTDLStreamOptions) => {
  * stream.pipe(fs.createWriteStream("kpop.mp3"));
  */
 const arbitraryStream = (
-    stream: string | Readable | Duplex,
+    stream: string | Readable | Duplex | Buffer,
     options?: StreamOptions
 ) => {
     if (!stream) {
@@ -169,6 +169,9 @@ const arbitraryStream = (
             '-ac',
             '2',
         ];
+        if(stream instanceof Buffer){
+            FFmpegArgs.push('-i', '-')
+        }
     }
 
     if (!isNaN(options.seek)) {
@@ -183,6 +186,9 @@ const arbitraryStream = (
         args: FFmpegArgs,
     });
     if (typeof stream !== 'string') {
+        if(stream instanceof Buffer){
+            stream = Readable.from(stream)
+        }
         transcoder = stream.pipe(transcoder);
         stream.on('error', () => transcoder.destroy());
     }
